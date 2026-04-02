@@ -8,7 +8,7 @@ use time::PrimitiveDateTime;
 pub struct XapoRow {
     pub(crate) time: PrimitiveDateTime,
     pub(crate) amount: Decimal,
-    pub(crate) description: String,
+    pub(crate) action: String,
     pub(crate) sub_description: String,
 }
 
@@ -26,12 +26,17 @@ fn parse_decimal(input: &str) -> Result<Decimal, rust_decimal::Error> {
     Decimal::from_str(input).or_else(|_| Decimal::from_scientific(input))
 }
 
+/// Converts a CSV record into a XapoRow.
+/// Note that the CSV format changed at some point in early 2026. The columns received new names
+/// and appeared in different order. We only support the new format, and we also index by
+/// column number, which is vulnerable to similar future changes. A good improvement would be to
+/// index by column name instead, and/or to detect new and old version.
 fn record_to_xapo_row(record: StringRecord) -> Result<XapoRow, ParseError> {
     Ok(XapoRow {
-        time: crate::time::parse_date_time(&record[0])?,
-        amount: parse_decimal(&record[1])?,
-        description: record[2].to_string(),
-        sub_description: record[3].to_string(),
+        time: crate::time::parse_date_time(&record[1])?,
+        amount: parse_decimal(&record[4])?,
+        action: record[2].to_string(),
+        sub_description: record[8].to_string(),
     })
 }
 

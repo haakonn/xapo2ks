@@ -13,7 +13,7 @@ pub fn xapo_to_ks(xapo_rows: Vec<XapoRow>) -> Result<Vec<KsRow>, ConvertError> {
 }
 
 fn xapo_row_to_ks(xapo_row: XapoRow) -> Result<Option<KsRow>, ConvertError> {
-    match xapo_row.description.as_str() {
+    match xapo_row.action.as_str() {
         "Lightning network transaction" | "Sent BTC" => Some(xfer_out(xapo_row)).transpose(),
         "Daily USD interest" | "Daily BTC interest" => Some(interest_tx(xapo_row)).transpose(),
         "Card Cashback Redemption" => Some(cashback_tx(xapo_row)).transpose(),
@@ -24,7 +24,7 @@ fn xapo_row_to_ks(xapo_row: XapoRow) -> Result<Option<KsRow>, ConvertError> {
 }
 
 fn description_words(xapo_row: &XapoRow) -> Vec<&str> {
-    xapo_row.description.split_whitespace().collect()
+    xapo_row.action.split_whitespace().collect()
 }
 
 fn consumption_tx(xapo_row: XapoRow) -> Result<KsRow, ConvertError> {
@@ -62,10 +62,7 @@ fn income_tx(xapo_row: &XapoRow, note: String, tx_type: TxType) -> Result<KsRow,
 }
 
 fn interest_tx(xapo_row: XapoRow) -> Result<KsRow, ConvertError> {
-    let currency_code = xapo_row
-        .description
-        .split_whitespace()
-        .collect::<Vec<&str>>()[1];
+    let currency_code = xapo_row.action.split_whitespace().collect::<Vec<&str>>()[1];
     income_tx(
         &xapo_row,
         format!("{} {}", currency_code, xapo_row.sub_description),
